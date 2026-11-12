@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Finance Manager Pro | Inteligência Financeira</title>
+  <title>FinCore Pro | Inteligência Financeira</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <!-- Chart.js & Lucide Icons -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Custom Styles -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
   <div class="app-shell">
     <!-- HEADER FIXO -->
     <header class="app-header">
       <div class="header-brand">
         <div class="brand-logo">
-          <i data-lucide="TrendingUp"></i>
+          <i data-lucide="trending-up"></i>
         </div>
         <div>
           <h1>Finance Manager</h1>
@@ -33,7 +37,7 @@
         <button class="icon-btn" id="btnSyncDrive" title="Sincronizar com Google Sheets">
           <i data-lucide="refresh-cw"></i>
         </button>
-        <button class="icon-btn" id="btnOpenSettings" title="Configurações & API Key">
+        <button class="icon-btn" id="btnOpenSettings" title="Configurações & Gemini API Key">
           <i data-lucide="sliders"></i>
         </button>
       </div>
@@ -66,7 +70,7 @@
       </div>
     </section>
 
-    <!-- CONTEÚDO PRINCIPAL ROLÁVEL -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="app-content">
 
       <!-- ==========================================
@@ -74,7 +78,7 @@
            ========================================== -->
       <section class="tab-pane active" id="tab-dashboard">
 
-        <!-- KPIs DO PERÍODO (RECEITAS, DESPESAS E ORÇAMENTO) -->
+        <!-- KPIs DO PERÍODO -->
         <div class="kpi-grid-3">
           <div class="kpi-card kpi-income">
             <span class="kpi-label">Receitas (<span class="lbl-window">Mês</span>)</span>
@@ -93,7 +97,7 @@
           </div>
         </div>
 
-        <!-- GRÁFICO DE BARRAS DINÂMICO (EIXO ALTERA POR SEMANA, MÊS, TRIMESTRE, ANO) -->
+        <!-- GRÁFICO DE BARRAS DINÂMICO -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -107,7 +111,7 @@
           </div>
         </div>
 
-        <!-- GRÁFICO DE PIZZA / ROSCA DINÂMICO POR NATUREZA -->
+        <!-- GRÁFICO DE PIZZA / ROSCA DINÂMICO -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -125,19 +129,20 @@
           </div>
         </div>
 
-        <!-- NOVA VISÃO: CRONOGRAMA DE VENCIMENTOS & CONCILIAÇÃO (ANTES DO PAINEL ANALÍTICO) -->
+        <!-- VISÃO: VENCIMENTOS & CONCILIAÇÃO DO MÊS (COM MINIMIZAR DIAS E LISTA COMPLETA) -->
         <div class="glass-card due-schedule-card">
           <div class="card-header">
             <div>
               <h2>Vencimentos & Conciliação do Mês</h2>
-              <p class="card-subtitle">Conciliação automática (Extrato x Budget) e baixa manual</p>
+              <p class="card-subtitle">Gravado em <code>status_pagamentos</code> e <code>budget</code> no Google Sheets
+              </p>
             </div>
             <button class="btn-outline-xs" id="btnOpenBudgetModal">
               <i data-lucide="plus"></i> Ajustar Budget
             </button>
           </div>
 
-          <!-- Filtros de Mês e Dia de Vencimento no Topo da Visão -->
+          <!-- Filtros de Mês, Dia de Vencimento e Status -->
           <div class="due-filters-bar">
             <div class="filter-field">
               <label for="dueMonthFilter">Mês Vencimento</label>
@@ -169,10 +174,25 @@
             </div>
           </div>
 
-          <!-- Resumo Rápido de Status de Vencimentos -->
-          <div class="due-status-summary" id="dueStatusSummary"></div>
+          <!-- Barra de Ações: Resumo de Tags + Botões de Minimizar / Expandir Dias -->
+          <div class="due-toolbar-actions">
+            <div class="due-status-summary" id="dueStatusSummary"></div>
+            <div class="due-collapse-controls">
+              <label class="toggle-zero-label" title="Exibir também contas com valor R$ 0,00 no mês">
+                <input type="checkbox" id="chkShowZeroBudget" /> Mostrar contas R$ 0
+              </label>
+              <div style="display:flex;gap:5px;">
+                <button type="button" class="btn-ghost-xs" id="btnCollapseAllDays">
+                  <i data-lucide="chevrons-up"></i> Minimizar Dias
+                </button>
+                <button type="button" class="btn-ghost-xs" id="btnExpandAllDays">
+                  <i data-lucide="chevrons-down"></i> Expandir Dias
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <!-- Lista de Contas Agrupadas por Data de Vencimento com Subtotais -->
+          <!-- Lista de Contas por Dia de Vencimento (Sem corte de rolagem para ver todas as contas) -->
           <div class="due-groups-container" id="dueGroupsContainer"></div>
 
           <!-- Totalizador Geral + Simulador de Caixa Interativo -->
@@ -192,7 +212,7 @@
               </div>
             </div>
 
-            <!-- Caixa de Simulação: Valor Disponível - Total a Pagar = Resultado -->
+            <!-- Caixa de Simulação -->
             <div class="simulator-box">
               <div class="sim-header">
                 <span class="sim-title"><i data-lucide="calculator"></i> Simulador de Cobertura de Contas</span>
@@ -203,7 +223,7 @@
               </div>
               <div class="sim-calc-grid">
                 <div class="sim-input-col">
-                  <label for="simInputAmount">Valor para Simulação (R$)</label>
+                  <label for="simInputAmount">Valor Preenchimento (R$)</label>
                   <input type="number" step="0.01" id="simInputAmount" placeholder="Ex: 15000.00" value="15000" />
                 </div>
                 <div class="sim-operator">-</div>
@@ -221,7 +241,7 @@
           </div>
         </div>
 
-        <!-- PAINEL ANALÍTICO (COM TAG RECEITA / DESPESA EM CADA BULLET CARD) -->
+        <!-- PAINEL ANALÍTICO (COM TAG RECEITA / DESPESA) -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -239,13 +259,185 @@
       </section>
 
       <!-- ==========================================
-           ABA 2: EXTRATO & CONCILIAÇÃO + MATRIZ
+           ABA 2: FORECAST (PLANEJAMENTO, AJUSTES DO BUDGET E VISÃO FUTURA)
+           ========================================== -->
+      <!-- ==========================================
+           ABA 2: FORECAST (PLANEJAMENTO, CLONAGEM COM REAJUSTE E VISÃO FUTURA)
+           ========================================== -->
+      <section class="tab-pane" id="tab-forecast">
+        <!-- KPIs do Forecast -->
+        <div class="kpi-grid-3">
+          <div class="kpi-card kpi-income">
+            <span class="kpi-label">Receita Planejada</span>
+            <strong class="kpi-value" id="fcKpiReceita">R$ 0,00</strong>
+            <small class="kpi-sub" id="fcKpiReceitaSub">Mês Selecionado</small>
+          </div>
+          <div class="kpi-card kpi-expense">
+            <span class="kpi-label">Despesa Planejada</span>
+            <strong class="kpi-value" id="fcKpiDespesa">R$ 0,00</strong>
+            <small class="kpi-sub" id="fcKpiDespesaSub">Fixo vs Variável</small>
+          </div>
+          <div class="kpi-card kpi-result">
+            <span class="kpi-label">Saldo Forecast</span>
+            <strong class="kpi-value" id="fcKpiSaldo">R$ 0,00</strong>
+            <small class="kpi-sub" id="fcKpiMargem">Margem: 0%</small>
+          </div>
+        </div>
+
+        <!-- Gráfico de Visão Futura (Receitas x Despesas x Saldo nos próximos 12 meses) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Visão Futura de Receitas e Despesas (12M)</h2>
+              <p class="card-subtitle">Projeção mensal do Budget com curva de saldo líquido</p>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-outline-xs" id="btnToggleClonePanel" title="Clonar mês para o futuro com reajuste">
+                <i data-lucide="copy-plus"></i> Clonar Mês
+              </button>
+              <button class="btn-primary-xs" id="btnForecastAddAccount">
+                <i data-lucide="calendar-plus"></i> + Conta
+              </button>
+            </div>
+          </div>
+          <div class="chart-container-bar" style="height: 215px;">
+            <canvas id="forecastTimelineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- NOVO PAINEL: CLONAR E REAJUSTAR ORÇAMENTO EM LOTE -->
+        <div class="glass-card clone-forecast-card" id="cloneForecastPanel" style="display:none;">
+          <div class="card-header">
+            <div>
+              <h2>Clonar & Reajustar Mês Base</h2>
+              <p class="card-subtitle">Replique o orçamento de um mês para meses futuros ou próximo ano com reajuste (%)
+              </p>
+            </div>
+            <button type="button" class="icon-btn-close" id="btnCloseClonePanel" title="Fechar painel">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="due-filters-bar">
+            <div class="filter-field">
+              <label for="cloneSourceMonth">1. Mês Base (Origem)</label>
+              <input type="month" id="cloneSourceMonth" value="2026-11" />
+            </div>
+            <div class="filter-field">
+              <label for="cloneTargetMode">2. Modo de Destino</label>
+              <select id="cloneTargetMode">
+                <option value="NEXT_12">Próximos 12 Meses</option>
+                <option value="NEXT_6">Próximos 6 Meses</option>
+                <option value="NEXT_3">Próximos 3 Meses</option>
+                <option value="FULL_YEAR_2027">Ano Inteiro 2027 (Jan-Dez)</option>
+                <option value="SINGLE_MONTH">Mês Específico</option>
+              </select>
+            </div>
+            <div class="filter-field" id="cloneSingleMonthWrap">
+              <label for="cloneTargetMonth">Mês Inicial / Alvo</label>
+              <input type="month" id="cloneTargetMonth" value="2026-12" />
+            </div>
+          </div>
+
+          <div class="due-filters-bar">
+            <div class="filter-field">
+              <label for="cloneAdjReceita">Reajuste Receitas (%)</label>
+              <input type="number" step="0.1" id="cloneAdjReceita" value="0.0" placeholder="Ex: 5.5" />
+            </div>
+            <div class="filter-field">
+              <label for="cloneAdjDespesa">Reajuste Despesas (%)</label>
+              <input type="number" step="0.1" id="cloneAdjDespesa" value="0.0" placeholder="Ex: 4.2" />
+            </div>
+            <div class="filter-field">
+              <label for="cloneScopeSelect">Escopo de Contas</label>
+              <select id="cloneScopeSelect">
+                <option value="ALL">Todas (Fixas + Variáveis)</option>
+                <option value="FIXO">Apenas Fixas</option>
+                <option value="DESPESA">Apenas Despesas</option>
+                <option value="RECEITA">Apenas Receitas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="clone-options-row">
+            <label class="toggle-zero-label">
+              <input type="checkbox" id="chkCloneOverwrite" checked />
+              Sobrescrever valores já existentes nos meses de destino
+            </label>
+          </div>
+
+          <!-- Prévia Dinâmica antes de aplicar -->
+          <div class="clone-preview-box" id="clonePreviewSummary"></div>
+
+          <button type="button" class="btn-primary-full" id="btnExecuteCloneBudget">
+            <i data-lucide="sparkles"></i> Aplicar Clonagem no Forecast & Google Sheets
+          </button>
+        </div>
+
+        <!-- Gerenciador de Budget por Mês, Classe, Natureza e Conta -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Gerenciamento do Budget & Ajustes</h2>
+              <p class="card-subtitle">Altere dia de vencimento e valor orçado por conta e replique para meses futuros
+              </p>
+            </div>
+          </div>
+
+          <div class="due-filters-bar">
+            <div class="filter-field">
+              <label for="fcMonthSelect">Mês do Forecast</label>
+              <input type="month" id="fcMonthSelect" value="2026-11" />
+            </div>
+            <div class="filter-field">
+              <label for="fcClassFilter">Classe</label>
+              <select id="fcClassFilter">
+                <option value="ALL">Receitas & Despesas</option>
+                <option value="DESPESA">Despesas</option>
+                <option value="RECEITA">Receitas</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="fcNaturezaFilter">Natureza</label>
+              <select id="fcNaturezaFilter">
+                <option value="ALL">Todas as Naturezas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="search-filter-row">
+            <input type="text" id="fcSearchInput" class="input-dark"
+              placeholder="Buscar conta no Forecast por código ou descrição..." />
+            <select id="fcReplicateQuickSelect" class="select-mini" title="Replicar alteração para meses seguintes">
+              <option value="1">Salvar 1 Mês</option>
+              <option value="3">Replicar 3m</option>
+              <option value="6">Replicar 6m</option>
+              <option value="12">Replicar 12m</option>
+            </select>
+          </div>
+
+          <div class="due-collapse-controls" style="margin-bottom: 10px; justify-content: flex-end;">
+            <button type="button" class="btn-ghost-xs" id="btnFcCollapseNaturezas">
+              <i data-lucide="chevrons-up"></i> Minimizar Naturezas
+            </button>
+            <button type="button" class="btn-ghost-xs" id="btnFcExpandNaturezas">
+              <i data-lucide="chevrons-down"></i> Expandir Naturezas
+            </button>
+          </div>
+
+          <!-- Lista Agrupada por Natureza com Edição Inline -->
+          <div class="forecast-natureza-groups" id="forecastManagerContainer"></div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ABA 3: EXTRATO & MATRIZ
            ========================================== -->
       <section class="tab-pane" id="tab-extrato">
         <div class="glass-card">
           <div class="card-header">
             <div>
-              <h2>Gestão da Matriz & Budget</h2>
+              <h2>Gestão da Matriz & Extrato</h2>
               <p class="card-subtitle">Alterações salvas diretamente no Google Sheets</p>
             </div>
             <div class="btn-row-compact">
@@ -258,7 +450,8 @@
             </div>
           </div>
           <div class="search-filter-row">
-            <input type="text" id="extratoSearchInput" class="input-dark" placeholder="Buscar no extrato por descrição, código ou valor..." />
+            <input type="text" id="extratoSearchInput" class="input-dark"
+              placeholder="Buscar no extrato por descrição, código ou valor..." />
             <select id="extratoTypeFilter" class="select-mini">
               <option value="ALL">Todos</option>
               <option value="CREDITO">Créditos</option>
@@ -268,7 +461,6 @@
           <div class="transactions-list" id="extratoListContainer"></div>
         </div>
 
-        <!-- Catálogo de Contas da MATRIZ -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -281,10 +473,9 @@
       </section>
 
       <!-- ==========================================
-           ABA 3: CARTÕES DE CRÉDITO (POR BANCO E CATEGORIA)
+           ABA 4: CARTÕES DE CRÉDITO
            ========================================== -->
       <section class="tab-pane" id="tab-cartoes">
-        <!-- KPIs de Cartões -->
         <div class="kpi-grid-3">
           <div class="kpi-card kpi-expense">
             <span class="kpi-label">Total Faturas (Mês)</span>
@@ -303,7 +494,6 @@
           </div>
         </div>
 
-        <!-- Filtros e Ações de Cartões -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -327,7 +517,7 @@
                 <option value="BRADESCO">Bradesco</option>
               </select>
             </div>
-            <div class="filter-field">
+            <div class="filter-field" style="grid-column: span 2;">
               <label for="cardCategoryFilter">Tipo de Compra (Matriz)</label>
               <select id="cardCategoryFilter">
                 <option value="ALL">Todas as Categorias</option>
@@ -340,7 +530,6 @@
           </div>
         </div>
 
-        <!-- Lista Analítica de Compras no Cartão -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -353,17 +542,18 @@
       </section>
 
       <!-- ==========================================
-           ABA 4: AI INSIGHTS (SAÚDE FINANCEIRA & PROJEÇÕES 6/12/24M)
+           ABA 5: AI INSIGHTS
            ========================================== -->
       <section class="tab-pane" id="tab-ai">
-        <!-- FUNÇÃO 1: DIAGNÓSTICO DE SAÚDE FINANCEIRA POR JANELA TEMPORAL -->
         <div class="glass-card ai-card">
           <div class="card-header">
             <div>
               <h2>1. Diagnóstico de Saúde Financeira</h2>
               <p class="card-subtitle">Análise Receitas x Despesas x Budget + Cartões e Ações Práticas</p>
             </div>
-            <span class="ai-sparkle-badge"><i data-lucide="sparkles"></i> Gemini AI</span>
+            <button type="button" class="btn-outline-xs" id="btnQuickKeyFromAi">
+              <i data-lucide="key"></i> Configurar API Key
+            </button>
           </div>
 
           <div class="ai-window-selector">
@@ -380,7 +570,6 @@
           </button>
         </div>
 
-        <!-- FUNÇÃO 2: PROJEÇÕES GRÁFICAS (6, 12 E 24 MESES) & SIMULADOR DE DECISÃO -->
         <div class="glass-card">
           <div class="card-header">
             <div>
@@ -389,27 +578,28 @@
             </div>
           </div>
 
-          <!-- Seletor 6M / 12M / 24M -->
           <div class="horizon-selector" id="projectionHorizonGroup">
             <button class="seg-btn active" data-horizon="6">Próximos 6 Meses</button>
             <button class="seg-btn" data-horizon="12">Próximos 12 Meses</button>
             <button class="seg-btn" data-horizon="24">Próximos 24 Meses</button>
           </div>
 
-          <!-- Simulador de Tomada de Decisão (Aquisição de Bem / Parcelamento / Atrasados) -->
           <div class="decision-sim-panel">
-            <div class="sim-panel-title">Simular Impacto de Nova Decisão Financeira</div>
+            <div class="sim-panel-title" style="font-size:0.74rem;font-weight:700;margin-bottom:6px;color:#cbd5e1;">
+              Simular Impacto de Nova Decisão Financeira
+            </div>
             <div class="due-filters-bar">
               <div class="filter-field">
                 <label for="projNewAssetDesc">Objetivo / Bem</label>
-                <input type="text" id="projNewAssetDesc" class="input-dark" placeholder="Ex: Troca de Carro / Reforma" value="Aquisição / Parcelamento" />
+                <input type="text" id="projNewAssetDesc" class="input-dark" placeholder="Ex: Troca de Carro"
+                  value="Aquisição / Parcelamento" />
               </div>
               <div class="filter-field">
                 <label for="projMonthlyImpact">Parcela Mensal (R$)</label>
                 <input type="number" id="projMonthlyImpact" class="input-dark" step="50" value="0" />
               </div>
               <div class="filter-field">
-                <label for="projInitialOutlay">Entrada / Quitação Atrasos (R$)</label>
+                <label for="projInitialOutlay">Entrada / Atrasos (R$)</label>
                 <input type="number" id="projInitialOutlay" class="input-dark" step="100" value="0" />
               </div>
             </div>
@@ -419,22 +609,25 @@
             <canvas id="projectionForecastChart"></canvas>
           </div>
 
-          <!-- Resumo de Viabilidade da Projeção -->
           <div class="projection-verdict-box" id="projectionVerdictBox"></div>
         </div>
       </section>
 
     </main>
 
-    <!-- NAVEGAÇÃO INFERIOR (4 ABAS) -->
+    <!-- NAVEGAÇÃO INFERIOR (5 ABAS INCLUINDO FORECAST) -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-target="tab-dashboard">
         <i data-lucide="layout-dashboard"></i>
         <span>Dashboard</span>
       </button>
+      <button class="nav-item" data-target="tab-forecast">
+        <i data-lucide="calendar-range"></i>
+        <span>Forecast</span>
+      </button>
       <button class="nav-item" data-target="tab-extrato">
-        <i data-lucide="file-Spreadsheet"></i>
-        <span>Matriz & Extrato</span>
+        <i data-lucide="file-spreadsheet"></i>
+        <span>Matriz/Extrato</span>
       </button>
       <button class="nav-item" data-target="tab-cartoes">
         <i data-lucide="credit-card"></i>
@@ -446,9 +639,7 @@
       </button>
     </nav>
 
-    <!-- ==========================================
-         MODAL 1: CADASTRAR / EDITAR CONTA NA MATRIZ
-         ========================================== -->
+    <!-- MODAL 1: CADASTRAR / EDITAR CONTA NA MATRIZ -->
     <div class="modal-backdrop" id="modalMatriz" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
@@ -488,7 +679,7 @@
           </div>
           <div class="form-group">
             <label>Termos para Leitura no Extrato (separados por vírgula)</label>
-            <textarea id="matDescExtrato" rows="2" placeholder="Ex: ALLIANZ SEGUROS, TOKIO MARINE, CNPJ..."></textarea>
+            <textarea id="matDescExtrato" rows="2" placeholder="Ex: ALLIANZ SEGUROS, TOKIO MARINE..."></textarea>
           </div>
           <div class="form-group">
             <label>Exemplo de Operação</label>
@@ -499,9 +690,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MODAL 2: INCLUIR / AJUSTAR CONTA NO BUDGET
-         ========================================== -->
+    <!-- MODAL 2: INCLUIR / AJUSTAR CONTA NO BUDGET -->
     <div class="modal-backdrop" id="modalBudget" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
@@ -550,9 +739,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MODAL 3: NOVO LANÇAMENTO DE CARTÃO DE CRÉDITO
-         ========================================== -->
+    <!-- MODAL 3: NOVO LANÇAMENTO DE CARTÃO -->
     <div class="modal-backdrop" id="modalCartao" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
@@ -588,7 +775,7 @@
           </div>
           <div class="form-group">
             <label>Estabelecimento / Descrição da Compra</label>
-            <input type="text" id="cardDescInput" required placeholder="Ex: AMAZON BR, ZAFFARI, DROGA RAIA" />
+            <input type="text" id="cardDescInput" required placeholder="Ex: AMAZON BR, ZAFFARI" />
           </div>
           <div class="form-row-2">
             <div class="form-group">
@@ -609,23 +796,23 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MODAL 4: CONFIGURAÇÕES (API URL & GEMINI KEY)
-         ========================================== -->
+    <!-- MODAL 4: CONFIGURAÇÕES & GEMINI API KEY -->
     <div class="modal-backdrop" id="modalSettings" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
-          <h3>Configurações de Conexão</h3>
+          <h3>Configurações & Chave Gemini</h3>
           <button class="icon-btn-close" data-close="modalSettings"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-form">
           <div class="form-group">
             <label>URL do Web App (Google Apps Script)</label>
-            <input type="url" id="cfgGasUrl" value="https://script.google.com/macros/s/AKfycbwim_LWD_imCGtxeQBwoo3gwGn9d0Cnp-RE5YIhhAHlIW4PZ0mgBgpwIijPuhspRYy1lA/exec" />
+            <input type="url" id="cfgGasUrl"
+              value="https://script.google.com/macros/s/AKfycbwim_LWD_imCGtxeQBwoo3gwGn9d0Cnp-RE5YIhhAHlIW4PZ0mgBgpwIijPuhspRYy1lA/exec" />
           </div>
           <div class="form-group">
-            <label>Google Gemini API Key (para análises generativas)</label>
-            <input type="password" id="cfgGeminiKey" placeholder="AIzaSy..." />
+            <label>Google Gemini API Key (<a href="https://aistudio.google.com/app/apikey" target="_blank"
+                style="color:#60a5fa;">Gerar no Google AI Studio</a>)</label>
+            <input type="password" id="cfgGeminiKey" placeholder="Cole sua chave AIzaSy..." />
           </div>
           <button type="button" id="btnSaveSettings" class="btn-primary-full">Salvar Configurações</button>
         </div>
@@ -636,4 +823,5 @@
 
   <script src="js/script.js"></script>
 </body>
+
 </html>
