@@ -1,464 +1,639 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>FinCore Private — Gestão Financeira & Forecast</title>
-
-  <!-- Tipografia Moderna: Inter (UI) & JetBrains Mono (Valores Financeiros) -->
+  <title>Finance Manager Pro | Inteligência Financeira</title>
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- Biblioteca de Ícones Lucide -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Biblioteca Chart.js -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js & Lucide Icons -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-  <!-- Folha de Estilo Principal -->
-  <link rel="stylesheet" href="./css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-
 <body>
-  <!-- Shell do Dispositivo Mobile (440x956) -->
   <div class="app-shell">
-
-    <!-- Top Header Fixo -->
+    <!-- HEADER FIXO -->
     <header class="app-header">
-      <div class="header-left">
-        <div class="brand-avatar">
+      <div class="header-brand">
+        <div class="brand-logo">
           <i data-lucide="TrendingUp"></i>
         </div>
         <div>
-          <span class="header-subtitle">CONTA CORRENTE • SICREDI</span>
-          <h1 class="header-title">FinCore <span class="badge-pro">PRIVATE</span></h1>
+          <h1>Finance Manager</h1>
+          <span class="sync-badge" id="syncStatusBadge">
+            <span class="dot"></span> Sincronizado com Drive
+          </span>
         </div>
       </div>
       <div class="header-actions">
-        <button id="btnSyncApi" class="icon-btn" title="Sincronizar com Banco de Dados">
+        <button class="icon-btn" id="btnSyncDrive" title="Sincronizar com Google Sheets">
           <i data-lucide="refresh-cw"></i>
         </button>
-        <button id="btnOpenSettings" class="icon-btn" title="Configurar Endpoints e API">
-          <i data-lucide="sliders-horizontal"></i>
+        <button class="icon-btn" id="btnOpenSettings" title="Configurações & API Key">
+          <i data-lucide="sliders"></i>
         </button>
       </div>
     </header>
 
-    <!-- Área de Conteúdo Rolável das Abas -->
-    <main class="app-content">
-
-      <!-- =========================================================
-           ABA 1: DASHBOARD E VISÃO GERENCIAL
-           ========================================================= -->
-      <section id="tab-dashboard" class="tab-pane active">
-
-        <!-- Toggle de Conceito: Fluxo de Caixa vs Avaliação Gerencial -->
-        <div class="concept-toggle-wrapper">
-          <button class="concept-btn active" data-concept="cashflow">
-            <i data-lucide="wallet"></i>
-            <span>Fluxo de Caixa</span>
-          </button>
-          <button class="concept-btn" data-concept="managerial">
-            <i data-lucide="bar-chart-3"></i>
-            <span>Avaliação Gerencial</span>
-          </button>
+    <!-- SELETOR GLOBAL DE MÊS/ANO E JANELA DE TEMPO -->
+    <section class="global-filter-bar">
+      <div class="period-segmented" id="timeframeFilterGroup">
+        <button class="seg-btn" data-timeframe="week">Semana</button>
+        <button class="seg-btn active" data-timeframe="month">Mês</button>
+        <button class="seg-btn" data-timeframe="quarter">Trimestre</button>
+        <button class="seg-btn" data-timeframe="year">Ano</button>
+      </div>
+      <div class="month-selector-row">
+        <div class="input-group-compact">
+          <label for="globalMonthInput"><i data-lucide="calendar"></i> Período Base</label>
+          <input type="month" id="globalMonthInput" value="2026-11" />
         </div>
-
-        <!-- Seletor de Período -->
-        <div class="period-pills">
-          <button class="period-pill" data-period="week">Semana</button>
-          <button class="period-pill active" data-period="month">Mês</button>
-          <button class="period-pill" data-period="quarter">Trimestre</button>
-          <button class="period-pill" data-period="year">Ano</button>
-        </div>
-
-        <!-- Cards de KPIs Executivos -->
-        <div class="kpi-grid">
-          <div class="kpi-card kpi-balance">
-            <div class="kpi-header">
-              <span class="kpi-label" id="kpiPrimaryLabel">SALDO EM CONTA (EXTRATO)</span>
-              <i data-lucide="landmark" class="kpi-icon neutral"></i>
-            </div>
-            <div class="kpi-value mono" id="kpiBalanceValue">R$ 0,00</div>
-            <div class="kpi-footer" id="kpiBalanceMeta">
-              <span>Resultado Líquido do Período:</span>
-              <strong id="kpiNetResult" class="mono">R$ 0,00</strong>
-            </div>
-          </div>
-
-          <div class="kpi-row-split">
-            <div class="kpi-card kpi-income">
-              <div class="kpi-header">
-                <span class="kpi-label">RECEITAS</span>
-                <span class="kpi-badge income" id="kpiIncomePct">0%</span>
-              </div>
-              <div class="kpi-value mono text-income" id="kpiIncomeReal">R$ 0,00</div>
-              <div class="kpi-sub mono" id="kpiIncomeBudget">Budget: R$ 0,00</div>
-            </div>
-
-            <div class="kpi-card kpi-expense">
-              <div class="kpi-header">
-                <span class="kpi-label">DESPESAS</span>
-                <span class="kpi-badge expense" id="kpiExpensePct">0%</span>
-              </div>
-              <div class="kpi-value mono text-expense" id="kpiExpenseReal">R$ 0,00</div>
-              <div class="kpi-sub mono" id="kpiExpenseBudget">Budget: R$ 0,00</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filtros Dinâmicos -->
-        <div class="filters-bar">
-          <div class="filter-group">
-            <label for="filterType">Tipo</label>
-            <select id="filterType" class="filter-select">
-              <option value="ALL">Todos</option>
-              <option value="RECEITA">Receitas</option>
-              <option value="DESPESA">Despesas</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filterNature">Natureza</label>
-            <select id="filterNature" class="filter-select">
-              <option value="ALL">Todas</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filterMetric">Exibição</label>
-            <select id="filterMetric" class="filter-select">
-              <option value="BOTH">Real vs. Budget</option>
-              <option value="REAL">Apenas Realizado</option>
-              <option value="BUDGET">Apenas Budget</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Gráfico Principal: Evolução & Comparativo -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <div>
-              <h2 class="card-title" id="mainChartTitle">Realizado vs. Budget</h2>
-              <p class="card-subtitle" id="mainChartSubtitle">Análise comparativa por categoria</p>
-            </div>
-            <span class="chip-tag" id="conceptBadgeTag">Caixa</span>
-          </div>
-          <div class="chart-container">
-            <canvas id="mainDashboardChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Gráfico Secundário: Composição Fixa vs Variável / Natureza -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <div>
-              <h2 class="card-title">Composição por Natureza</h2>
-              <p class="card-subtitle">Distribuição proporcional no período</p>
-            </div>
-          </div>
-          <div class="chart-container chart-doughnut-box">
-            <canvas id="natureDoughnutChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Painel Comparativo Detalhado: Realizado vs Budget -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2 class="card-title">Painel Analítico: Realizado vs. Budget</h2>
-              <p class="card-subtitle">Desvio por natureza e conta gerencial</p>
-            </div>
-          </div>
-          <div id="comparativeList" class="comparative-list">
-            <!-- Renderizado via JS -->
-          </div>
-        </div>
-
-      </section>
-
-      <!-- =========================================================
-           ABA 2: EXTRATO E CLASSIFICAÇÃO (SICREDI)
-           ========================================================= -->
-      <section id="tab-statement" class="tab-pane">
-
-        <div class="section-banner">
-          <div>
-            <h2 class="section-title">Extrato Sicredi & Motor de Tags</h2>
-            <p class="section-desc">Correspondência automática via tabela MATRIZ</p>
-          </div>
-          <button id="btnReclassifyAll" class="btn-secondary btn-sm">
-            <i data-lucide="cpu"></i> Reprocessar
-          </button>
-        </div>
-
-        <!-- Busca e Filtro de Classificação -->
-        <div class="search-filter-row">
-          <div class="search-box">
-            <i data-lucide="search"></i>
-            <input type="text" id="searchStatement" placeholder="Buscar documento, histórico ou tag..." />
-          </div>
-          <select id="filterStatementClass" class="filter-select compact">
-            <option value="ALL">Todas</option>
-            <option value="Fixa">Fixas</option>
-            <option value="Variável">Variáveis</option>
-            <option value="UNCLASSIFIED">Sem Match</option>
+        <div class="input-group-compact" id="weekSelectorWrapper" style="display:none;">
+          <label for="globalWeekSelect">Semana</label>
+          <select id="globalWeekSelect">
+            <option value="ALL">Todas do Mês</option>
+            <option value="1">Semana 1 (01-07)</option>
+            <option value="2">Semana 2 (08-14)</option>
+            <option value="3">Semana 3 (15-21)</option>
+            <option value="4">Semana 4 (22-28)</option>
+            <option value="5">Semana 5 (29-31)</option>
           </select>
         </div>
+      </div>
+    </section>
 
-        <!-- Resumo Rápido de Classificação -->
-        <div class="statement-stats" id="statementStats">
-          <!-- Renderizado via JS -->
-        </div>
+    <!-- CONTEÚDO PRINCIPAL ROLÁVEL -->
+    <main class="app-content">
 
-        <!-- Lista de Movimentações Financeiras -->
-        <div id="statementList" class="transaction-list">
-          <!-- Renderizado via JS -->
-        </div>
+      <!-- ==========================================
+           ABA 1: DASHBOARD (SEM SALDO EM CONTA)
+           ========================================== -->
+      <section class="tab-pane active" id="tab-dashboard">
 
-      </section>
-
-      <!-- =========================================================
-           ABA 3: GESTÃO DE FORECAST (BUDGET)
-           ========================================================= -->
-      <section id="tab-forecast" class="tab-pane">
-
-        <div class="section-banner">
-          <div>
-            <h2 class="section-title">Gestão de Forecast (Budget)</h2>
-            <p class="section-desc">Planejamento mensal e metas orçamentárias</p>
+        <!-- KPIs DO PERÍODO (RECEITAS, DESPESAS E ORÇAMENTO) -->
+        <div class="kpi-grid-3">
+          <div class="kpi-card kpi-income">
+            <span class="kpi-label">Receitas (<span class="lbl-window">Mês</span>)</span>
+            <strong class="kpi-value" id="kpiReceitaReal">R$ 0,00</strong>
+            <small class="kpi-sub" id="kpiReceitaBudget">Budget: R$ 0,00</small>
           </div>
-          <button id="btnAddBudget" class="btn-primary btn-sm">
-            <i data-lucide="plus"></i> Novo Item
-          </button>
-        </div>
-
-        <!-- Seletor de Agrupamento do Forecast -->
-        <div class="group-tabs">
-          <button class="group-tab active" data-group="month">Por Mês</button>
-          <button class="group-tab" data-group="nature">Por Natureza</button>
-          <button class="group-tab" data-group="account">Por Conta</button>
-        </div>
-
-        <!-- Resumo do Budget Projetado -->
-        <div class="forecast-summary-bar" id="forecastSummaryBar">
-          <!-- Renderizado via JS -->
-        </div>
-
-        <!-- Lista Agrupada de Forecast -->
-        <div id="forecastContainer" class="forecast-groups">
-          <!-- Renderizado via JS -->
-        </div>
-
-      </section>
-
-      <!-- =========================================================
-           ABA 4: INSIGHTS DE IA (GEMINI)
-           ========================================================= -->
-      <section id="tab-ai" class="tab-pane">
-
-        <div class="ai-hero-card">
-          <div class="ai-hero-top">
-            <div class="ai-badge-icon">
-              <i data-lucide="sparkles"></i>
-            </div>
-            <div>
-              <h2 class="ai-title">Consultor Financeiro Gemini IA</h2>
-              <p class="ai-subtitle">Diagnóstico de balanço, desvios de budget e cenário macroeconômico</p>
-            </div>
+          <div class="kpi-card kpi-expense">
+            <span class="kpi-label">Despesas (<span class="lbl-window">Mês</span>)</span>
+            <strong class="kpi-value" id="kpiDespesaReal">R$ 0,00</strong>
+            <small class="kpi-sub" id="kpiDespesaBudget">Budget: R$ 0,00</small>
           </div>
-
-          <div class="ai-key-box">
-            <label for="geminiApiKeyInput">Chave da API Google Gemini (Opcional para modo simulado)</label>
-            <div class="input-with-btn">
-              <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." autocomplete="off" />
-              <button id="btnSaveApiKey" class="btn-secondary btn-sm">Salvar</button>
-            </div>
+          <div class="kpi-card kpi-result">
+            <span class="kpi-label">Resultado Líquido</span>
+            <strong class="kpi-value" id="kpiResultadoLiquido">R$ 0,00</strong>
+            <small class="kpi-sub" id="kpiExecucaoBudget">0% do Budget</small>
           </div>
-
-          <button id="btnGenerateInsights" class="btn-ai-generate">
-            <i data-lucide="wand-2"></i>
-            <span>Analisar Balanço & Gerar Recomendações</span>
-          </button>
         </div>
 
-        <!-- Payload Preview (Resumo enviado para o modelo) -->
-        <div class="card">
+        <!-- GRÁFICO DE BARRAS DINÂMICO (EIXO ALTERA POR SEMANA, MÊS, TRIMESTRE, ANO) -->
+        <div class="glass-card">
           <div class="card-header">
             <div>
-              <h3 class="card-title">Resumo Executivo Enviado ao Modelo</h3>
-              <p class="card-subtitle">Síntese consolidada das tabelas MATRIZ, Budget e Sicredi</p>
+              <h2>Fluxo Receita vs Despesa vs Budget</h2>
+              <p class="card-subtitle" id="barChartSubtitle">Visão Mensal por Grupamento de Vencimentos</p>
+            </div>
+            <span class="pill-badge" id="barChartGranularityBadge">Mês</span>
+          </div>
+          <div class="chart-container-bar">
+            <canvas id="cashflowBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- GRÁFICO DE PIZZA / ROSCA DINÂMICO POR NATUREZA -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Proporção por Natureza</h2>
+              <p class="card-subtitle">Distribuição proporcional na janela selecionada</p>
+            </div>
+            <select id="pieSourceSelect" class="select-mini">
+              <option value="DESPESA_BUDGET">Despesas (Budget)</option>
+              <option value="DESPESA_EXTRATO">Despesas (Extrato)</option>
+              <option value="RECEITA_BUDGET">Receitas (Budget)</option>
+            </select>
+          </div>
+          <div class="chart-container-pie">
+            <canvas id="naturezaPieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- NOVA VISÃO: CRONOGRAMA DE VENCIMENTOS & CONCILIAÇÃO (ANTES DO PAINEL ANALÍTICO) -->
+        <div class="glass-card due-schedule-card">
+          <div class="card-header">
+            <div>
+              <h2>Vencimentos & Conciliação do Mês</h2>
+              <p class="card-subtitle">Conciliação automática (Extrato x Budget) e baixa manual</p>
+            </div>
+            <button class="btn-outline-xs" id="btnOpenBudgetModal">
+              <i data-lucide="plus"></i> Ajustar Budget
+            </button>
+          </div>
+
+          <!-- Filtros de Mês e Dia de Vencimento no Topo da Visão -->
+          <div class="due-filters-bar">
+            <div class="filter-field">
+              <label for="dueMonthFilter">Mês Vencimento</label>
+              <input type="month" id="dueMonthFilter" value="2026-11" />
+            </div>
+            <div class="filter-field">
+              <label for="dueDayFilter">Dia Vencimento</label>
+              <select id="dueDayFilter">
+                <option value="ALL">Todos os Dias</option>
+                <option value="1">Dia 01</option>
+                <option value="10">Dia 10</option>
+                <option value="15">Dia 15</option>
+                <option value="20">Dia 20</option>
+                <option value="25">Dia 25</option>
+                <option value="27">Dia 27</option>
+                <option value="28">Dia 28</option>
+                <option value="30">Dia 30</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="dueStatusFilter">Status</label>
+              <select id="dueStatusFilter">
+                <option value="ALL">Todos</option>
+                <option value="PENDING">Em Aberto</option>
+                <option value="OVERDUE">Em Atraso</option>
+                <option value="SOON">Próx. Vencimento</option>
+                <option value="PAID">Pagas (Em Dia)</option>
+              </select>
             </div>
           </div>
-          <div id="aiPayloadPreview" class="payload-preview mono">
-            <!-- Renderizado via JS -->
+
+          <!-- Resumo Rápido de Status de Vencimentos -->
+          <div class="due-status-summary" id="dueStatusSummary"></div>
+
+          <!-- Lista de Contas Agrupadas por Data de Vencimento com Subtotais -->
+          <div class="due-groups-container" id="dueGroupsContainer"></div>
+
+          <!-- Totalizador Geral + Simulador de Caixa Interativo -->
+          <div class="due-GrandTotal-box">
+            <div class="grand-totals-row">
+              <div class="gt-item">
+                <span>Total Geral Contas</span>
+                <strong id="dueTotalAll">R$ 0,00</strong>
+              </div>
+              <div class="gt-item gt-paid">
+                <span>Total Já Pago</span>
+                <strong id="dueTotalPaid">R$ 0,00</strong>
+              </div>
+              <div class="gt-item gt-pending">
+                <span>Total a Pagar (Aberto)</span>
+                <strong id="dueTotalPending">R$ 0,00</strong>
+              </div>
+            </div>
+
+            <!-- Caixa de Simulação: Valor Disponível - Total a Pagar = Resultado -->
+            <div class="simulator-box">
+              <div class="sim-header">
+                <span class="sim-title"><i data-lucide="calculator"></i> Simulador de Cobertura de Contas</span>
+                <select id="simTargetSelect" class="select-mini">
+                  <option value="TOTAL_GERAL">Descontar Total Geral</option>
+                  <option value="TOTAL_PENDENTE">Descontar Total em Aberto</option>
+                </select>
+              </div>
+              <div class="sim-calc-grid">
+                <div class="sim-input-col">
+                  <label for="simInputAmount">Valor para Simulação (R$)</label>
+                  <input type="number" step="0.01" id="simInputAmount" placeholder="Ex: 15000.00" value="15000" />
+                </div>
+                <div class="sim-operator">-</div>
+                <div class="sim-target-col">
+                  <label>Total a Pagar</label>
+                  <div class="sim-readonly-val" id="simBaseValueDisplay">R$ 0,00</div>
+                </div>
+                <div class="sim-operator">=</div>
+                <div class="sim-result-col">
+                  <label>Resultado Simulado</label>
+                  <div class="sim-result-val positive" id="simResultDisplay">R$ 0,00</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Container de Resposta da IA -->
-        <div id="aiResponseContainer" class="ai-response-wrapper">
-          <!-- Renderizado via JS -->
+        <!-- PAINEL ANALÍTICO (COM TAG RECEITA / DESPESA EM CADA BULLET CARD) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Painel Analítico por Conta</h2>
+              <p class="card-subtitle">Realizado no Extrato vs Budget na janela selecionada</p>
+            </div>
+            <select id="analyticClassFilter" class="select-mini">
+              <option value="ALL">Receitas & Despesas</option>
+              <option value="DESPESA">Apenas Despesas</option>
+              <option value="RECEITA">Apenas Receitas</option>
+            </select>
+          </div>
+          <div class="analytic-bullet-list" id="analyticBulletList"></div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ABA 2: EXTRATO & CONCILIAÇÃO + MATRIZ
+           ========================================== -->
+      <section class="tab-pane" id="tab-extrato">
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Gestão da Matriz & Budget</h2>
+              <p class="card-subtitle">Alterações salvas diretamente no Google Sheets</p>
+            </div>
+            <div class="btn-row-compact">
+              <button class="btn-primary-xs" id="btnNewMatrizModal">
+                <i data-lucide="folder-plus"></i> Nova Conta (Matriz)
+              </button>
+              <button class="btn-outline-xs" id="btnNewBudgetFromTab">
+                <i data-lucide="calendar-plus"></i> Lançar Budget
+              </button>
+            </div>
+          </div>
+          <div class="search-filter-row">
+            <input type="text" id="extratoSearchInput" class="input-dark" placeholder="Buscar no extrato por descrição, código ou valor..." />
+            <select id="extratoTypeFilter" class="select-mini">
+              <option value="ALL">Todos</option>
+              <option value="CREDITO">Créditos</option>
+              <option value="DEBITO">Débitos</option>
+            </select>
+          </div>
+          <div class="transactions-list" id="extratoListContainer"></div>
         </div>
 
+        <!-- Catálogo de Contas da MATRIZ -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Contas Cadastradas na MATRIZ</h2>
+              <p class="card-subtitle">Clique em qualquer conta para editar código, descrição ou termos de extrato</p>
+            </div>
+          </div>
+          <div class="matriz-catalog-list" id="matrizCatalogContainer"></div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ABA 3: CARTÕES DE CRÉDITO (POR BANCO E CATEGORIA)
+           ========================================== -->
+      <section class="tab-pane" id="tab-cartoes">
+        <!-- KPIs de Cartões -->
+        <div class="kpi-grid-3">
+          <div class="kpi-card kpi-expense">
+            <span class="kpi-label">Total Faturas (Mês)</span>
+            <strong class="kpi-value" id="cardKpiTotal">R$ 0,00</strong>
+            <small class="kpi-sub" id="cardKpiBudgetCompare">Budget (11061): R$ 0,00</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Maior Banco</span>
+            <strong class="kpi-value" id="cardKpiTopBank">-</strong>
+            <small class="kpi-sub" id="cardKpiTopBankVal">R$ 0,00</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Maior Categoria</span>
+            <strong class="kpi-value" id="cardKpiTopCat">-</strong>
+            <small class="kpi-sub" id="cardKpiTopCatVal">R$ 0,00</small>
+          </div>
+        </div>
+
+        <!-- Filtros e Ações de Cartões -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Análise de Cartões por Banco</h2>
+              <p class="card-subtitle">Desagregação analítica da conta 11061 (Cartão de Crédito)</p>
+            </div>
+            <button class="btn-primary-xs" id="btnOpenCardModal">
+              <i data-lucide="credit-card"></i> + Compra Cartão
+            </button>
+          </div>
+
+          <div class="due-filters-bar">
+            <div class="filter-field">
+              <label for="cardBankFilter">Banco Emissor</label>
+              <select id="cardBankFilter">
+                <option value="ALL">Todos os Bancos</option>
+                <option value="SICREDI">Sicredi</option>
+                <option value="NUBANK">Nubank</option>
+                <option value="ITAU">Itaú</option>
+                <option value="XP">XP Visa</option>
+                <option value="BRADESCO">Bradesco</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="cardCategoryFilter">Tipo de Compra (Matriz)</label>
+              <select id="cardCategoryFilter">
+                <option value="ALL">Todas as Categorias</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="chart-container-bar" style="height: 210px;">
+            <canvas id="cardsByBankChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Lista Analítica de Compras no Cartão -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>Lançamentos dos Cartões</h2>
+              <p class="card-subtitle">Compras detalhadas por banco, parcela e classificação da Matriz</p>
+            </div>
+          </div>
+          <div class="transactions-list" id="cardTransactionsContainer"></div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           ABA 4: AI INSIGHTS (SAÚDE FINANCEIRA & PROJEÇÕES 6/12/24M)
+           ========================================== -->
+      <section class="tab-pane" id="tab-ai">
+        <!-- FUNÇÃO 1: DIAGNÓSTICO DE SAÚDE FINANCEIRA POR JANELA TEMPORAL -->
+        <div class="glass-card ai-card">
+          <div class="card-header">
+            <div>
+              <h2>1. Diagnóstico de Saúde Financeira</h2>
+              <p class="card-subtitle">Análise Receitas x Despesas x Budget + Cartões e Ações Práticas</p>
+            </div>
+            <span class="ai-sparkle-badge"><i data-lucide="sparkles"></i> Gemini AI</span>
+          </div>
+
+          <div class="ai-window-selector">
+            <button class="seg-btn-ai active" data-ai-window="week">Semana</button>
+            <button class="seg-btn-ai" data-ai-window="month">Mês</button>
+            <button class="seg-btn-ai" data-ai-window="quarter">Trimestre</button>
+            <button class="seg-btn-ai" data-ai-window="year">Ano</button>
+          </div>
+
+          <div class="ai-health-summary-box" id="aiHealthDiagnosticOutput"></div>
+
+          <button class="btn-primary-full" id="btnRunGeminiHealth">
+            <i data-lucide="cpu"></i> Gerar Plano de Ação Aprofundado com Gemini IA
+          </button>
+        </div>
+
+        <!-- FUNÇÃO 2: PROJEÇÕES GRÁFICAS (6, 12 E 24 MESES) & SIMULADOR DE DECISÃO -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div>
+              <h2>2. Projeções de Cenários (6, 12 e 24 Meses)</h2>
+              <p class="card-subtitle">Previsão baseada no Budget para aquisição de bens e quitação de passivos</p>
+            </div>
+          </div>
+
+          <!-- Seletor 6M / 12M / 24M -->
+          <div class="horizon-selector" id="projectionHorizonGroup">
+            <button class="seg-btn active" data-horizon="6">Próximos 6 Meses</button>
+            <button class="seg-btn" data-horizon="12">Próximos 12 Meses</button>
+            <button class="seg-btn" data-horizon="24">Próximos 24 Meses</button>
+          </div>
+
+          <!-- Simulador de Tomada de Decisão (Aquisição de Bem / Parcelamento / Atrasados) -->
+          <div class="decision-sim-panel">
+            <div class="sim-panel-title">Simular Impacto de Nova Decisão Financeira</div>
+            <div class="due-filters-bar">
+              <div class="filter-field">
+                <label for="projNewAssetDesc">Objetivo / Bem</label>
+                <input type="text" id="projNewAssetDesc" class="input-dark" placeholder="Ex: Troca de Carro / Reforma" value="Aquisição / Parcelamento" />
+              </div>
+              <div class="filter-field">
+                <label for="projMonthlyImpact">Parcela Mensal (R$)</label>
+                <input type="number" id="projMonthlyImpact" class="input-dark" step="50" value="0" />
+              </div>
+              <div class="filter-field">
+                <label for="projInitialOutlay">Entrada / Quitação Atrasos (R$)</label>
+                <input type="number" id="projInitialOutlay" class="input-dark" step="100" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container-bar" style="height: 250px;">
+            <canvas id="projectionForecastChart"></canvas>
+          </div>
+
+          <!-- Resumo de Viabilidade da Projeção -->
+          <div class="projection-verdict-box" id="projectionVerdictBox"></div>
+        </div>
       </section>
 
     </main>
 
-    <!-- Bottom Navigation Bar (Padrão Mobile) -->
+    <!-- NAVEGAÇÃO INFERIOR (4 ABAS) -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-target="tab-dashboard">
         <i data-lucide="layout-dashboard"></i>
         <span>Dashboard</span>
       </button>
-      <button class="nav-item" data-target="tab-statement">
-        <i data-lucide="receipt"></i>
-        <span>Extrato</span>
+      <button class="nav-item" data-target="tab-extrato">
+        <i data-lucide="file-Spreadsheet"></i>
+        <span>Matriz & Extrato</span>
       </button>
-      <button class="nav-item" data-target="tab-forecast">
-        <i data-lucide="calendar-range"></i>
-        <span>Forecast</span>
+      <button class="nav-item" data-target="tab-cartoes">
+        <i data-lucide="credit-card"></i>
+        <span>Cartões</span>
       </button>
       <button class="nav-item" data-target="tab-ai">
-        <i data-lucide="sparkles"></i>
-        <span>IA Insights</span>
+        <i data-lucide="brain-circuit"></i>
+        <span>AI Insights</span>
       </button>
     </nav>
 
-    <!-- =========================================================
-         MODAL 1: EDITAR CLASSIFICAÇÃO DE TRANSAÇÃO & TAG MATRIZ
-         ========================================================= -->
-    <div id="modalClassify" class="modal-backdrop hidden">
+    <!-- ==========================================
+         MODAL 1: CADASTRAR / EDITAR CONTA NA MATRIZ
+         ========================================== -->
+    <div class="modal-backdrop" id="modalMatriz" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
-          <h3>Classificar Movimentação</h3>
-          <button class="icon-btn close-modal" data-modal="modalClassify">
-            <i data-lucide="x"></i>
-          </button>
+          <h3>Cadastrar / Editar Conta na MATRIZ</h3>
+          <button class="icon-btn-close" data-close="modalMatriz"><i data-lucide="x"></i></button>
         </div>
-        <form id="formClassify" class="modal-body">
-          <input type="hidden" id="editTxId" />
-
-          <div class="form-field">
-            <label>Documento / Descrição no Extrato Sicredi</label>
-            <input type="text" id="editTxDesc" readonly class="input-readonly mono" />
-          </div>
-
+        <form id="formMatrizAccount" class="modal-form">
           <div class="form-row-2">
-            <div class="form-field">
-              <label>Data</label>
-              <input type="text" id="editTxDate" readonly class="input-readonly mono" />
+            <div class="form-group">
+              <label>Código da Conta</label>
+              <input type="number" id="matCodigo" required placeholder="Ex: 10019 ou 11072" />
             </div>
-            <div class="form-field">
-              <label>Valor (R$)</label>
-              <input type="text" id="editTxValue" readonly class="input-readonly mono" />
+            <div class="form-group">
+              <label>Classe</label>
+              <select id="matClasse" required>
+                <option value="DESPESA">DESPESA (1xxxx)</option>
+                <option value="RECEITA">RECEITA (2xxxx)</option>
+              </select>
             </div>
           </div>
-
-          <div class="form-field">
-            <label for="editTxAccount">Conta da Tabela MATRIZ (cod_conta)</label>
-            <select id="editTxAccount" required></select>
-          </div>
-
-          <div class="form-field">
-            <label for="editNewTag">Adicionar Tag de Automação na MATRIZ (desc_extrato)</label>
-            <input type="text" id="editNewTag" placeholder="Ex: SUPERMERCADO, UBER, PIX..." />
-            <small class="field-hint">Se preenchido, atualiza a coluna desc_extrato da conta selecionada para futuros
-              matches automáticos.</small>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" class="btn-secondary close-modal" data-modal="modalClassify">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar & Sincronizar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- =========================================================
-         MODAL 2: EDITAR / CRIAR ITEM DE BUDGET (FORECAST)
-         ========================================================= -->
-    <div id="modalBudget" class="modal-backdrop hidden">
-      <div class="modal-sheet">
-        <div class="modal-header">
-          <h3 id="modalBudgetTitle">Editar Projeção (Budget)</h3>
-          <button class="icon-btn close-modal" data-modal="modalBudget">
-            <i data-lucide="x"></i>
-          </button>
-        </div>
-        <form id="formBudget" class="modal-body">
-          <input type="hidden" id="budgetEditIndex" />
-
           <div class="form-row-2">
-            <div class="form-field">
-              <label for="budgetDtVenc">Data Vencimento (dt_venc)</label>
-              <input type="date" id="budgetDtVenc" required />
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="matTipo" required>
+                <option value="FIXO">FIXO</option>
+                <option value="VARIÁVEL">VARIÁVEL</option>
+              </select>
             </div>
-            <div class="form-field">
-              <label for="budgetValor">Valor Projetado (R$)</label>
-              <input type="number" step="0.01" id="budgetValor" required placeholder="0.00" />
+            <div class="form-group">
+              <label>Natureza</label>
+              <input type="text" id="matNatureza" required placeholder="Ex: MORADIA, TRANSPORTE, LAZER" />
             </div>
           </div>
-
-          <div class="form-field">
-            <label for="budgetCodConta">Conta Vinculada (cod_conta / MATRIZ)</label>
-            <select id="budgetCodConta" required></select>
+          <div class="form-group">
+            <label>Descrição da Conta</label>
+            <input type="text" id="matDescricao" required placeholder="Ex: SEGURO RESIDENCIAL" />
           </div>
-
-          <div class="form-field">
-            <label for="budgetObs">Observação (obs_budget)</label>
-            <input type="text" id="budgetObs" placeholder="Detalhamento da meta ou premissa..." />
+          <div class="form-group">
+            <label>Termos para Leitura no Extrato (separados por vírgula)</label>
+            <textarea id="matDescExtrato" rows="2" placeholder="Ex: ALLIANZ SEGUROS, TOKIO MARINE, CNPJ..."></textarea>
           </div>
-
-          <div class="modal-actions">
-            <button type="button" id="btnDeleteBudget" class="btn-danger hidden">Excluir</button>
-            <button type="button" class="btn-secondary close-modal" data-modal="modalBudget">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Forecast</button>
+          <div class="form-group">
+            <label>Exemplo de Operação</label>
+            <input type="text" id="matExemplo" placeholder="Ex: Débito automático mensal" />
           </div>
+          <button type="submit" class="btn-primary-full">Salvar na Aba MATRIZ (Google Sheets)</button>
         </form>
       </div>
     </div>
 
-    <!-- =========================================================
-         MODAL 3: CONFIGURAÇÃO DE API REST (GOOGLE SHEETS / MYSQL)
-         ========================================================= -->
-    <div id="modalSettings" class="modal-backdrop hidden">
+    <!-- ==========================================
+         MODAL 2: INCLUIR / AJUSTAR CONTA NO BUDGET
+         ========================================== -->
+    <div class="modal-backdrop" id="modalBudget" style="display:none;">
       <div class="modal-sheet">
         <div class="modal-header">
-          <h3>Conexão Backend & Banco de Dados</h3>
-          <button class="icon-btn close-modal" data-modal="modalSettings">
-            <i data-lucide="x"></i>
-          </button>
+          <h3>Incluir / Ajustar Valor no Budget</h3>
+          <button class="icon-btn-close" data-close="modalBudget"><i data-lucide="x"></i></button>
         </div>
-        <form id="formSettings" class="modal-body">
-          <div class="form-field">
-            <label for="apiEndpointInput">Endpoint REST API (Apps Script / PHP / Node)</label>
-            <input type="url" id="apiEndpointInput" placeholder="https://script.google.com/macros/s/.../exec" />
-            <small class="field-hint">Deixe em branco para utilizar a persistência local e os dados mockados das 3
-              tabelas.</small>
+        <form id="formBudgetItem" class="modal-form">
+          <div class="form-group">
+            <label>Conta da MATRIZ</label>
+            <select id="budCodConta" required></select>
           </div>
-
-          <div class="form-field">
-            <label>Status das Tabelas Carregadas</label>
-            <div id="dbStatusSummary" class="db-status-box mono"></div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Data de Vencimento</label>
+              <input type="date" id="budDtVenc" required value="2026-11-10" />
+            </div>
+            <div class="form-group">
+              <label>Valor do Budget (R$)</label>
+              <input type="number" step="0.01" id="budValor" required placeholder="Ex: 520.00" />
+            </div>
           </div>
-
-          <div class="modal-actions">
-            <button type="button" id="btnResetMock" class="btn-danger">Restaurar Mock Original</button>
-            <button type="submit" class="btn-primary">Salvar Configuração</button>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Tipo no Budget</label>
+              <select id="budTipo">
+                <option value="FIXO">FIXO</option>
+                <option value="VARIÁVEL">VARIÁVEL</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Replicar para próximos meses?</label>
+              <select id="budReplicate">
+                <option value="1">Apenas este mês</option>
+                <option value="3">Próximos 3 meses</option>
+                <option value="6">Próximos 6 meses</option>
+                <option value="12">Próximos 12 meses</option>
+              </select>
+            </div>
           </div>
+          <div class="form-group">
+            <label>Observação</label>
+            <input type="text" id="budObs" placeholder="Opcional" />
+          </div>
+          <button type="submit" class="btn-primary-full">Salvar na Aba Budget (Google Sheets)</button>
         </form>
       </div>
     </div>
 
-    <!-- Toast de Notificação -->
-    <div id="appToast" class="app-toast hidden"></div>
+    <!-- ==========================================
+         MODAL 3: NOVO LANÇAMENTO DE CARTÃO DE CRÉDITO
+         ========================================== -->
+    <div class="modal-backdrop" id="modalCartao" style="display:none;">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h3>Novo Lançamento de Cartão</h3>
+          <button class="icon-btn-close" data-close="modalCartao"><i data-lucide="x"></i></button>
+        </div>
+        <form id="formCartaoItem" class="modal-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Banco Emissor</label>
+              <select id="cardBancoInput" required>
+                <option value="SICREDI">SICREDI</option>
+                <option value="NUBANK">NUBANK</option>
+                <option value="ITAU">ITAÚ</option>
+                <option value="XP">XP VISA</option>
+                <option value="BRADESCO">BRADESCO</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Final do Cartão</label>
+              <input type="text" id="cardFinalInput" maxlength="4" value="4821" />
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Data da Compra</label>
+              <input type="date" id="cardDataInput" required value="2026-11-10" />
+            </div>
+            <div class="form-group">
+              <label>Mês da Fatura</label>
+              <input type="month" id="cardFaturaInput" required value="2026-11" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estabelecimento / Descrição da Compra</label>
+            <input type="text" id="cardDescInput" required placeholder="Ex: AMAZON BR, ZAFFARI, DROGA RAIA" />
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Classificação na MATRIZ</label>
+              <select id="cardCodContaInput" required></select>
+            </div>
+            <div class="form-group">
+              <label>Parcela</label>
+              <input type="text" id="cardParcelaInput" value="1/1" placeholder="Ex: 1/6" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Valor da Compra / Parcela (R$)</label>
+            <input type="number" step="0.01" id="cardValorInput" required placeholder="Ex: 249.90" />
+          </div>
+          <button type="submit" class="btn-primary-full">Salvar Compra no Cartão</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 4: CONFIGURAÇÕES (API URL & GEMINI KEY)
+         ========================================== -->
+    <div class="modal-backdrop" id="modalSettings" style="display:none;">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h3>Configurações de Conexão</h3>
+          <button class="icon-btn-close" data-close="modalSettings"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-form">
+          <div class="form-group">
+            <label>URL do Web App (Google Apps Script)</label>
+            <input type="url" id="cfgGasUrl" value="https://script.google.com/macros/s/AKfycbwim_LWD_imCGtxeQBwoo3gwGn9d0Cnp-RE5YIhhAHlIW4PZ0mgBgpwIijPuhspRYy1lA/exec" />
+          </div>
+          <div class="form-group">
+            <label>Google Gemini API Key (para análises generativas)</label>
+            <input type="password" id="cfgGeminiKey" placeholder="AIzaSy..." />
+          </div>
+          <button type="button" id="btnSaveSettings" class="btn-primary-full">Salvar Configurações</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 
-  <!-- Script Principal da Aplicação -->
-  <script src="./js/script.js"></script>
+  <script src="js/script.js"></script>
 </body>
-
 </html>
